@@ -1,0 +1,37 @@
+// NGnius 2020-01-23
+package goctranspo
+
+import (
+    "strconv"
+)
+
+type advancedRouteInterim struct {
+    RouteNo string
+    DirectionID int
+    Direction string
+    RouteHeading string
+    Trips []tripInterim
+}
+
+func (r advancedRouteInterim) Fix() AdvancedRoute {
+    routeNo, _ := strconv.Atoi(r.RouteNo)
+    trips := []Trip {}
+    for _, t := range r.Trips {
+        trips = append(trips, t.Fix())
+    }
+    return AdvancedRoute {
+                RouteNo: routeNo,
+                DirectionID: r.DirectionID,
+                Direction: r.Direction,
+                RouteHeading: r.RouteHeading,
+                Trips: trips,
+                }
+}
+
+type AdvancedRoute struct {
+    RouteNo int
+    DirectionID int
+    Direction string
+    RouteHeading string
+    Trips []Trip
+}
