@@ -2,7 +2,6 @@
 package goctranspo
 
 import (
-    "strconv"
     "time"
 )
 
@@ -16,7 +15,7 @@ type routeDirectionInterim struct {
 }
 
 func (r routeDirectionInterim) Fix() RouteDirection {
-    routeNo, _ := strconv.Atoi(r.RouteNo)
+    routeNo := NewRouteNo(r.RouteNo)
     requestProcessingTime, _ := time.Parse("20060102150405", r.RequestProcessingTime) // YYYYMMDDHHmmSS (HH in 24-hour format)
     trips := []Trip {}
     for _, t := range r.Trips["Trip"] {
@@ -33,7 +32,7 @@ func (r routeDirectionInterim) Fix() RouteDirection {
 }
 
 type RouteDirection struct {
-    RouteNo int
+    RouteNo RouteNo
     RouteLabel string
     Direction string
     Error string

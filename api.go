@@ -8,8 +8,7 @@ import (
     "net/url"
     "strconv"
     "io/ioutil"
-    
-    "errors"
+    "os"
 )
 
 const (
@@ -17,6 +16,10 @@ const (
     urlGetNextTripsForStop = "https://api.octranspo1.com/v1.3/GetNextTripsForStop"
     urlGetNextTripsForStopAllRoutes = "https://api.octranspo1.com/v1.3/GetNextTripsForStopAllRoutes"
     urlGTFS = "https://api.octranspo1.com/v1.3/Gtfs"
+)
+
+var (
+    debug bool = os.Getenv("GOCTRANSPO_DEBUG") != ""
 )
 
 type API struct {
@@ -58,7 +61,9 @@ func (api *API) GetRouteSummaryForStop(stopNo int, routeNo int) (RouteSummaryFor
         return rsfm, err
     }
     data, err := ioutil.ReadAll(resp.Body)
-    //fmt.Println(string(data))
+    if debug {
+        fmt.Println(string(data))
+    }
     if err != nil {
         return rsfm, err
     }
@@ -81,7 +86,9 @@ func (api *API) GetNextTripsForStop(stopNo int, routeNo int) (NextTripsForStop, 
         return ntfs, err
     }
     data, err := ioutil.ReadAll(resp.Body)
-    //fmt.Println(string(data))
+    if debug {
+        fmt.Println(string(data))
+    }
     if err != nil {
         return ntfs, err
     }
@@ -101,7 +108,9 @@ func (api *API) GetNextTripsForStopAllRoutes(stopNo int) (NextTripsForStopAllRou
         return ntfsas, err
     }
     data, err := ioutil.ReadAll(resp.Body)
-    //fmt.Println(string(data))
+    if debug {
+        fmt.Println(string(data))
+    }
     if err != nil {
         return ntfsas, err
     }
@@ -112,7 +121,40 @@ func (api *API) GetNextTripsForStopAllRoutes(stopNo int) (NextTripsForStopAllRou
     return ntfsas, nil
 }
 
-func (api *API) GTFS() (error) {
-    fmt.Println("GTFS query support coming soon")
-    return errors.New("UNIMPLEMENTED")
+func (api *API) GTFS(table string, id int, column string, value string, order_by string, direction string, limit int) (GTFS, error) {
+    var gtfs GTFS
+    values := api.startOfForm()
+    values.Add("table", table)
+    if id != 0 {
+        values.Add("id", strconv.Itoa(id))
+    }
+    if column != "" && value != "" {
+        values.Add("column", column)
+        values.Add("value", value)
+    }
+    if order_by != "" {
+        values.Add("order_by", order_by)
+    }
+    if direction != "" {
+        values.Add("direction", direction)
+    }
+    if limit != 0 {
+        values.Add("limit", strconv.Itoa(limit))
+    }
+    resp, err := api.client.PostForm(urlGTFS, values)
+    if err != nil {
+        return gtfs, err
+    }
+    data, err := ioutil.ReadAll(resp.Body)
+    if debug {
+        fmt.Println(string(data))
+    }
+    if err != nil {
+        return gtfs, err
+    }
+    gtfs, err = unmarshalGTFS(data)
+    if err != nil {
+        return gtfs, err
+    }
+    return gtfs, nil
 }
